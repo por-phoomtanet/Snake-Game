@@ -10,9 +10,18 @@
 
   function enqueueOwner(s, user, gift, coins, qty) {
     const sec = clamp(coins * qty * C.SKIN_SEC_PER_COIN, C.MIN_SKIN_SEC, C.MAX_SKIN_SEC);
-    s.owners.push({ name: user, skin: gift.skin || 'default', remainingMs: sec * 1000, epic: !!gift.epic });
+    s.owners.push({ name: user, skin: gift.skin || 'default', remainingMs: sec * 1000, totalMs: sec * 1000, epic: !!gift.epic });
     // จำกัดคิว: เก็บเจ้าของปัจจุบันไว้ ตัดตัวที่รอเก่าสุดทิ้ง
     while (s.owners.length > C.maxOwnerQueue) s.owners.splice(1, 1);
+  }
+
+  function applyTheme(s, user, gift, qty) {
+    const sec = clamp(gift.coins * qty * C.THEME_SEC_PER_COIN, C.MIN_THEME_SEC, C.MAX_THEME_SEC);
+    s.theme = gift.theme;
+    s.themeLabel = gift.name;
+    s.themeOwner = user;
+    s.themeExpiresAt = performance.now() + sec * 1000;
+    s.themeTotalMs = sec * 1000;
   }
 
   function spawnWall(s, user, gift, qty) {
@@ -46,9 +55,10 @@
     s.leaderboard.set(user, (s.leaderboard.get(user) || 0) + value);
     s.stats.giftsCount++; s.stats.totalCoins += value;
 
-    enqueueOwner(s, user, gift, gift.coins, qty);          // ตั้งชื่องู + สกิน
-    if (gift.effect === 'wall') spawnWall(s, user, gift, qty);
-    else if (gift.effect === 'theme') s.theme = gift.theme;
+    // แต่ละประเภทอิสระต่อกัน ใช้พร้อมกันได้ นับเวลาแยกกัน
+    if (gift.effect === 'skin') enqueueOwner(s, user, gift, gift.coins, qty); // เปลี่ยนชื่องู + สกิน
+    else if (gift.effect === 'wall') spawnWall(s, user, gift, qty);           // สร้างกำแพง
+    else if (gift.effect === 'theme') applyTheme(s, user, gift, qty);         // เปลี่ยนธีม
 
     SG.Bus.emit('toast', { type: 'gift', user, gift, qty, value });
     SG.Bus.emit('giftApplied', { user, gift, qty, value });

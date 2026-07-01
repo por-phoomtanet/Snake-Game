@@ -27,6 +27,11 @@
     WALL_BASE_LEN: 3,       // ความยาวกำแพงพื้นฐาน (ช่อง)
     WALL_SEC_PER_QTY: 12,   // เวลากำแพงอยู่ (วินาที) = WALL_SEC_PER_QTY * qty
     MAX_WALL_SEC: 300,
+
+    // ===== ของขวัญ: ธีม (นับเวลาแยกของตัวเอง แล้วกลับธีมปกติ) =====
+    THEME_SEC_PER_COIN: 0.5,
+    MIN_THEME_SEC: 15,
+    MAX_THEME_SEC: 300,
   };
 
   /* ---- แคตตาล็อกของขวัญ ----
@@ -37,18 +42,18 @@
      ↳ ต่อ TikTok จริงในเฟสถัดไป: แค่ map giftId ของ TikTok มาที่คีย์เหล่านี้ */
   SG.GIFTS = {
     rose:         { name: 'Rose',        emoji: '🌹', coins: 1,     effect: 'skin',  skin: 'rose' },
-    finger_heart: { name: 'Finger Heart',emoji: '🫰', coins: 5,     effect: 'skin',  skin: 'pink' },
+    finger_heart: { name: 'Finger Heart',emoji: '🫰', coins: 5,     effect: 'skin',  skin: 'goldheart' },
     perfume:      { name: 'Perfume',     emoji: '🌸', coins: 20,    effect: 'skin',  skin: 'purple' },
     sunglasses:   { name: 'Sunglasses',  emoji: '🕶️', coins: 199,   effect: 'skin',  skin: 'neon' },
     corgi:        { name: 'Corgi',       emoji: '🐶', coins: 299,   effect: 'skin',  skin: 'gold' },
     lion:         { name: 'Lion',        emoji: '🦁', coins: 29999, effect: 'skin',  skin: 'rainbow', epic: true },
 
-    brick:        { name: 'Brick Wall',  emoji: '🧱', coins: 20,    effect: 'wall',  skin: 'stone' },
-    fortress:     { name: 'Fortress',    emoji: '🏰', coins: 100,   effect: 'wall',  skin: 'stone', big: true },
+    brick:        { name: 'Brick Wall',  emoji: '🧱', coins: 20,    effect: 'wall' },
+    fortress:     { name: 'Fortress',    emoji: '🏰', coins: 100,   effect: 'wall',  big: true },
 
-    galaxy:       { name: 'Galaxy',      emoji: '🌌', coins: 100,   effect: 'theme', skin: 'purple', theme: 'galaxy' },
-    sunset:       { name: 'Sunset',      emoji: '🌅', coins: 50,    effect: 'theme', skin: 'gold',   theme: 'sunset' },
-    matrix:       { name: 'Matrix',      emoji: '💚', coins: 80,    effect: 'theme', skin: 'neon',   theme: 'matrix' },
+    galaxy:       { name: 'Galaxy',      emoji: '🌌', coins: 100,   effect: 'theme', theme: 'galaxy' },
+    sunset:       { name: 'Sunset',      emoji: '🌅', coins: 50,    effect: 'theme', theme: 'sunset' },
+    matrix:       { name: 'Matrix',      emoji: '💚', coins: 80,    effect: 'theme', theme: 'matrix' },
   };
 
   /* ---- สกินงู (จานสี) ---- */
@@ -61,6 +66,15 @@
     gold:    { head: '#ffe082', body: ['#ffca28', '#e65100'] },
     stone:   { head: '#cfd8dc', body: ['#90a4ae', '#37474f'] },
     rainbow: { rainbow: true },
+
+    // สกินรูปภาพ (PNG โปร่งใส) — ใส่ tint เพื่อไล่เฉดลำตัว หัวสว่าง→ท้ายเข้ม
+    // tint: [สีต้น, สีปลาย] คูณทับรูป (คงลวดลาย/เงาไว้) ถ้าไม่ใส่ = รูปสีเดิม
+    goldheart: {
+      head: '#f2b705', body: ['#f2b705', '#b8860b'],
+      headImg: 'image/snake_head_gold.png',
+      bodyImg: 'image/snake_body_gold.png',
+      tint: ['#fff2c2', '#9c6b00'],
+    },
   };
 
   /* ---- ธีม ---- */

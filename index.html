@@ -16,6 +16,15 @@
       <div class="stat"><span class="k">คะแนน</span><span id="score">0</span></div>
       <div class="stat"><span class="k">ด่าน</span><span id="level">1</span></div>
       <div class="stat wide"><span class="k">งูของ</span><span id="owner">AI Snake</span></div>
+
+      <!-- นับถอยหลังสกิน + คิวสกินถัดไป (อยู่ขวาของ "งูของ") -->
+      <div class="stat" id="skinBox">
+        <span class="k">⏱ เวลาสกิน · ถัดไป <span id="skinQueue"><span class="q-empty">—</span></span></span>
+        <span class="skin-cur">
+          <span id="skinTime">–</span>
+          <div class="skin-bar"><div id="skinBarFill"></div></div>
+        </span>
+      </div>
     </div>
 
     <!-- ลีดเดอร์บอร์ดขวาบน -->
@@ -30,6 +39,9 @@
       <div id="chatfeed"></div>
     </div>
 
+    <!-- ป้ายธีมปัจจุบัน + เวลานับถอยหลัง (โชว์เฉพาะตอนมีธีมพิเศษ) -->
+    <div id="themeBadge" class="hidden"></div>
+
     <!-- ทอสต์ของขวัญ ซ้ายล่าง -->
     <div id="toasts"></div>
   </div>
@@ -43,6 +55,7 @@
   <script src="js/game.js"></script>
   <script src="js/gifts.js"></script>
   <script src="js/aihost.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/render.js"></script>
   <script src="js/simulator.js"></script>
   <script src="js/main.js"></script>

@@ -18,6 +18,9 @@
     // ค่าเริ่มต้น = โหมดกดเอง (ใส่ ?auto=1 เพื่อเริ่มแบบส่งอัตโนมัติ)
     SG.Simulator.setMode(params.get('auto') === '1');
 
+    // ระบบเสียง (เพลงจะเริ่มหลังคลิก/กดปุ่มครั้งแรก ตามนโยบายเบราว์เซอร์)
+    SG.Audio.init();
+
     let last = performance.now(), acc = 0;
     function frame(now) {
       const dt = Math.min(100, now - last); last = now;
@@ -33,7 +36,10 @@
     requestAnimationFrame(frame);
 
     window.addEventListener('keydown', e => {
-      if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('hide-sim');
+      const k = e.key.toLowerCase();
+      if (k === 'h') document.body.classList.toggle('hide-sim'); // ซ่อน/แสดงแผงทดสอบ
+      if (k === 'm') SG.Audio.toggleMusic();                     // เปิด/ปิดเพลง
+      if (k === 'n') SG.Audio.toggleSfx();                       // เปิด/ปิดเอฟเฟกต์
     });
   }
 

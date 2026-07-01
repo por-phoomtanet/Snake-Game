@@ -68,7 +68,10 @@
         <button id="resetBtn" class="reset-btn">🔄 รีเซ็ตเกม</button>
       </div>
       <div class="sim-row toggles">
-        <label><input type="checkbox" id="ttsChk"> 🔊 AI พูดขอบคุณ (เฟส 2)</label>
+        <span class="mode-label">เสียง:</span>
+        <button id="musicBtn" class="snd-btn">🎵 เพลง</button>
+        <button id="sfxBtn" class="snd-btn">🔊 เอฟเฟกต์</button>
+        <label class="tts-wrap"><input type="checkbox" id="ttsChk"> 🗣️ AI พูดขอบคุณ (เฟส 2)</label>
       </div>`;
     panelEl = wrap;
 
@@ -85,6 +88,19 @@
     wrap.querySelector('#rateRange').addEventListener('input', e => setRate(+e.target.value));
     wrap.querySelector('#resetBtn').addEventListener('click', () => SG.Game.hardReset());
     wrap.querySelector('#ttsChk').addEventListener('change', e => SG.AIHost.setEnabled(e.target.checked));
+
+    // ปุ่มเสียง (ซิงก์กับสถานะจริง รวมถึงเวลากดปุ่มลัด M/N)
+    const musicBtn = wrap.querySelector('#musicBtn'), sfxBtn = wrap.querySelector('#sfxBtn');
+    function syncSnd() {
+      musicBtn.classList.toggle('on', SG.Audio.isMusic());
+      musicBtn.textContent = SG.Audio.isMusic() ? '🎵 เพลง: เปิด' : '🎵 เพลง: ปิด';
+      sfxBtn.classList.toggle('on', SG.Audio.isSfx());
+      sfxBtn.textContent = SG.Audio.isSfx() ? '🔊 เอฟเฟกต์: เปิด' : '🔊 เอฟเฟกต์: ปิด';
+    }
+    musicBtn.addEventListener('click', () => SG.Audio.toggleMusic());
+    sfxBtn.addEventListener('click', () => SG.Audio.toggleSfx());
+    SG.Bus.on('audiochange', syncSnd);
+    syncSnd();
   }
 
   SG.Simulator = { buildPanel, setAuto, setMode, isAuto, setRate, sendGift, sendChat, rname };

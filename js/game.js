@@ -14,7 +14,7 @@
         snake: [], dir: { x: 1, y: 0 },
         food: { x: 5, y: 5 }, obstacles: [], walls: [],
         owners: [],            // คิวเจ้าของงู: {name, skin, remainingMs, epic}
-        theme: 'classic',
+        theme: 'classic', themeLabel: '', themeOwner: '', themeExpiresAt: 0, themeTotalMs: 0,
         score: 0, level: 1, foodEaten: 0,
         tickMs: C.baseTickMs, alive: true,
         leaderboard: new Map(),
@@ -76,7 +76,9 @@
       const s = this.state;
       if (!s.alive) { this.reset(false); return; }
 
+      const prevDir = s.dir;
       s.dir = SG.AI.chooseDir(s);
+      if (prevDir.x !== s.dir.x || prevDir.y !== s.dir.y) SG.Bus.emit('turn', {}); // เสียงเลี้ยว
       if (!s.foodReachable) { s.noPathTicks++; if (s.noPathTicks > 40) this.spawnFood(); }
 
       const head = s.snake[0];
@@ -138,7 +140,8 @@
     hardReset() {
       const s = this.state;
       s.score = 0; s.level = 1; s.foodEaten = 0; s.tickMs = C.baseTickMs;
-      s.obstacles = []; s.walls = []; s.owners = []; s.theme = 'classic';
+      s.obstacles = []; s.walls = []; s.owners = [];
+      s.theme = 'classic'; s.themeLabel = ''; s.themeOwner = ''; s.themeExpiresAt = 0;
       s.leaderboard = new Map();
       s.stats = { deaths: 0, giftsCount: 0, totalCoins: 0 };
       s.noPathTicks = 0;
@@ -155,6 +158,9 @@
         if (s.owners[0].remainingMs <= 0) s.owners.shift();
       }
       if (s.walls.length) s.walls = s.walls.filter(w => w.expiresAt > now);
+      if (s.themeExpiresAt && now > s.themeExpiresAt) {   // ธีมหมดเวลา → กลับปกติ
+        s.theme = 'classic'; s.themeExpiresAt = 0; s.themeLabel = ''; s.themeOwner = '';
+      }
       if (s.flash && s.flash.until < now) s.flash = null;
     },
 

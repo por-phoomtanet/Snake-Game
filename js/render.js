@@ -6,6 +6,29 @@
   const cell = C.grid.cell;
   let ctx, canvas, W, H, stars = [];
   const el = {};
+  const imgCache = {};
+  function getImg(src) {
+    let im = imgCache[src];
+    if (!im) { im = new Image(); im.onload = () => { im._ok = true; }; im.src = src; imgCache[src] = im; }
+    return im;
+  }
+  // ย้อมสีรูป (multiply + mask คงลวดลาย/เงา + โปร่งใสเดิม) แล้ว cache ไว้
+  const tintCache = new Map();
+  function tintImage(img, color) {
+    const key = img.src + '|' + color;
+    let c = tintCache.get(key);
+    if (c) return c;
+    const S = 64;
+    c = document.createElement('canvas'); c.width = S; c.height = S;
+    const o = c.getContext('2d');
+    o.drawImage(img, 0, 0, S, S);
+    o.globalCompositeOperation = 'multiply';
+    o.fillStyle = color; o.fillRect(0, 0, S, S);
+    o.globalCompositeOperation = 'destination-in'; // ตัดกลับให้เหลือเฉพาะรูปเดิม
+    o.drawImage(img, 0, 0, S, S);
+    tintCache.set(key, c);
+    return c;
+  }
 
   const theme = t => SG.THEMES[t] || SG.THEMES.classic;
 
@@ -19,7 +42,11 @@
     el.score = document.getElementById('score');
     el.level = document.getElementById('level');
     el.owner = document.getElementById('owner');
+    el.skinTime = document.getElementById('skinTime');
+    el.skinBarFill = document.getElementById('skinBarFill');
+    el.skinQueue = document.getElementById('skinQueue');
     el.lb = document.getElementById('leaderboard');
+    el.themeBadge = document.getElementById('themeBadge');
     el.toasts = document.getElementById('toasts');
     el.chat = document.getElementById('chatfeed');
 
@@ -77,24 +104,57 @@
   function drawSnake(s, now) {
     const owner = SG.Game.activeOwner();
     const skin = SG.SKINS[owner ? owner.skin : 'default'] || SG.SKINS.default;
+    const headImg = skin.headImg ? getImg(skin.headImg) : null;
+    const bodyImg = skin.bodyImg ? getImg(skin.bodyImg) : null;
     const n = s.snake.length;
-    for (let i = n - 1; i >= 0; i--) {
+
+    // ลำตัว + หาง (วาดจากหางมาหาคอ)
+    for (let i = n - 1; i >= 1; i--) {
       const p = s.snake[i];
-      let col;
-      if (skin.rainbow) col = 'hsl(' + ((i * 12 + now / 8) % 360) + ',90%,55%)';
-      else if (i === 0) col = skin.head;
-      else col = lerp(skin.body[0], skin.body[1], i / n);
-      roundRect(p.x * cell + 1, p.y * cell + 1, cell - 2, cell - 2, i === 0 ? 8 : 5, col);
+      if (bodyImg && bodyImg._ok) {
+        let src = bodyImg;
+        if (skin.tint) {                                   // ไล่เฉด: หัวสว่าง→ท้ายเข้ม
+          const t = Math.round((i / n) * 16) / 16;         // quantize กัน cache บวม
+          src = tintImage(bodyImg, lerp(skin.tint[0], skin.tint[1], t));
+        }
+        ctx.drawImage(src, p.x * cell, p.y * cell, cell, cell);
+      } else {
+        const col = skin.rainbow ? 'hsl(' + ((i * 12 + now / 8) % 360) + ',90%,55%)' : lerp(skin.body[0], skin.body[1], i / n);
+        roundRect(p.x * cell + 1, p.y * cell + 1, cell - 2, cell - 2, 5, col);
+      }
     }
-    // ตา
-    const h = s.snake[0], d = s.dir, cx = h.x * cell + cell / 2, cy = h.y * cell + cell / 2;
+
+    // หัว
+    const h = s.snake[0];
+    if (headImg && headImg._ok) {
+      const headSrc = skin.tint ? tintImage(headImg, skin.tint[0]) : headImg; // ฝั่งสว่างสุด
+      drawImgCell(headSrc, h.x, h.y, Math.atan2(s.dir.y, s.dir.x)); // รูปหันขวา → หมุนตามทิศ
+    } else {
+      const col = skin.rainbow ? 'hsl(' + ((now / 8) % 360) + ',90%,55%)' : skin.head;
+      roundRect(h.x * cell + 1, h.y * cell + 1, cell - 2, cell - 2, 8, col);
+      drawEyes(s, h);
+    }
+
+    const name = (owner ? owner.name : 'AI Snake') + (owner && owner.epic ? ' 👑' : '');
+    pill(name, h.x * cell + cell / 2, h.y * cell - 6);
+  }
+
+  function drawEyes(s, h) {
+    const d = s.dir, cx = h.x * cell + cell / 2, cy = h.y * cell + cell / 2;
     const ex = d.y !== 0 ? 5 : 3, ey = d.x !== 0 ? 5 : 3;
     ctx.fillStyle = '#fff';
     dot(cx + d.x * 4 - ex, cy + d.y * 4 - ey, 2.4);
     dot(cx + d.x * 4 + ex, cy + d.y * 4 + ey, 2.4);
+  }
 
-    const name = (owner ? owner.name : 'AI Snake') + (owner && owner.epic ? ' 👑' : '');
-    pill(name, h.x * cell + cell / 2, h.y * cell - 6);
+  // วาดรูปหัวพอดีช่อง (ให้สัดส่วนเท่าลำตัว) หมุนตามทิศ
+  function drawImgCell(im, gx, gy, angle) {
+    const sz = cell;
+    ctx.save();
+    ctx.translate(gx * cell + cell / 2, gy * cell + cell / 2);
+    ctx.rotate(angle);
+    ctx.drawImage(im, -sz / 2, -sz / 2, sz, sz);
+    ctx.restore();
   }
 
   /* ---------- HUD ---------- */
@@ -103,6 +163,38 @@
     if (el.score) el.score.textContent = s.score;
     if (el.level) el.level.textContent = s.level;
     if (el.owner) el.owner.textContent = owner ? owner.name : 'AI Snake';
+
+    // นับถอยหลังสกินปัจจุบัน + แถบเวลา
+    if (el.skinTime) {
+      if (owner) {
+        el.skinTime.textContent = Math.ceil(owner.remainingMs / 1000) + 's';
+        const frac = owner.totalMs ? Math.max(0, Math.min(1, owner.remainingMs / owner.totalMs)) : 0;
+        el.skinBarFill.style.width = (frac * 100) + '%';
+        el.skinBarFill.style.background = swatch(owner.skin);
+      } else {
+        el.skinTime.textContent = '–';
+        el.skinBarFill.style.width = '0%';
+      }
+    }
+    // คิวสกินถัดไป 2 อัน
+    if (el.skinQueue) {
+      const q = s.owners.slice(1, 3);
+      el.skinQueue.innerHTML = q.length
+        ? q.map(w => `<span class="q-item"><span class="sw" style="background:${swatch(w.skin)}"></span>${escapeHtml(w.name)} <b>${Math.ceil(w.remainingMs / 1000)}s</b></span>`).join('')
+        : '<span class="q-empty">— ไม่มีคิว —</span>';
+    }
+
+    // ป้ายธีม + เวลานับถอยหลังของธีม (แยกจากสกิน)
+    if (el.themeBadge) {
+      if (s.theme !== 'classic' && s.themeExpiresAt) {
+        const left = Math.ceil((s.themeExpiresAt - performance.now()) / 1000);
+        el.themeBadge.classList.remove('hidden');
+        el.themeBadge.innerHTML = `🎨 ธีม ${escapeHtml(s.themeLabel || s.theme)} <b>${Math.max(0, left)}s</b>` +
+          (s.themeOwner ? ` <small>by ${escapeHtml(s.themeOwner)}</small>` : '');
+      } else {
+        el.themeBadge.classList.add('hidden');
+      }
+    }
 
     if (el.lb) {
       const top = [...s.leaderboard.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -184,6 +276,10 @@
     return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)},${Math.round(a[1] + (b[1] - a[1]) * t)},${Math.round(a[2] + (b[2] - a[2]) * t)})`;
   }
   function hex(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function swatch(name) {
+    const sk = SG.SKINS[name] || SG.SKINS.default;
+    return sk.rainbow ? 'linear-gradient(90deg,#f44,#fa0,#fd0,#4c4,#48f,#a4f)' : sk.head;
+  }
   function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   SG.Render = { init, draw };
