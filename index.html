@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐍 TikTok Snake Live</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="stage">
+    <!-- เกม -->
+    <canvas id="game"></canvas>
+
+    <!-- HUD ซ้ายบน -->
+    <div id="hud">
+      <div class="stat"><span class="k">คะแนน</span><span id="score">0</span></div>
+      <div class="stat"><span class="k">ด่าน</span><span id="level">1</span></div>
+      <div class="stat wide"><span class="k">งูของ</span><span id="owner">AI Snake</span></div>
+    </div>
+
+    <!-- ลีดเดอร์บอร์ดขวาบน -->
+    <div id="lbBox">
+      <div class="box-title">🏆 ผู้ใจดี</div>
+      <ol id="leaderboard"><li class="empty">ยังไม่มีของขวัญ…</li></ol>
+    </div>
+
+    <!-- แชตขวาล่าง -->
+    <div id="chatBox">
+      <div class="box-title">💬 แชต</div>
+      <div id="chatfeed"></div>
+    </div>
+
+    <!-- ทอสต์ของขวัญ ซ้ายล่าง -->
+    <div id="toasts"></div>
+  </div>
+
+  <!-- แผงทดสอบ (ซ่อนด้วย H หรือ ?obs=1) -->
+  <div id="simPanel"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/gifts.js"></script>
+  <script src="js/aihost.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

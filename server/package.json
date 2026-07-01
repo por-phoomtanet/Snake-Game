@@ -1,0 +1,15 @@
+{
+  "name": "tiktok-snake-live-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 2 backend: TikTok LIVE connector + Claude reply proxy for TikTok Snake Live",
+  "main": "tiktok-server.js",
+  "scripts": {
+    "start": "node tiktok-server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "tiktok-live-connector": "^1.2.0",
+    "@anthropic-ai/sdk": "^0.40.0"
+  }
+}
